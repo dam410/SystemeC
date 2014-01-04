@@ -1,6 +1,5 @@
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 
 
@@ -8,8 +7,8 @@ import java.util.Iterator;
 public class ServerObject {
 	private boolean lr = false;
 	private boolean lw = false;
-	private Client ecrivain;
-	private ArrayList<Client> lecteurs = new ArrayList<Client>();
+	private Client_itf ecrivain;
+	private ArrayList<Client_itf> lecteurs = new ArrayList<Client_itf>();
 	private Integer id;
 	private Object obj;
 	
@@ -19,7 +18,7 @@ public class ServerObject {
 	}
 	
 	
-	public Object lock_read(Client cl) throws RemoteException{
+	public Object lock_read(Client_itf cl) throws RemoteException{
 		if (lw) {
 			obj= ecrivain.reduce_lock(id);
 			lw = false;
@@ -29,7 +28,7 @@ public class ServerObject {
 		return obj;
 	}
 	
-	public Object lock_write(Client cl) throws RemoteException{
+	public Object lock_write(Client_itf cl) throws RemoteException{
 		if (lw){
 			obj= ecrivain.invalidate_writer(id);
 		}
@@ -37,8 +36,11 @@ public class ServerObject {
 			for (int i =0; i<lecteurs.size(); i++){
 				lecteurs.get(i).invalidate_reader(id);
 			}
-			lr = false;
 		}
+		ecrivain = cl;
+		lecteurs.add(cl);
+		lw = true;
+		lr = false;
 		return obj;
 	}
 }

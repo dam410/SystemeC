@@ -1,40 +1,61 @@
 import java.rmi.*;
 import java.util.Hashtable;
+import java.rmi.server.UnicastRemoteObject;
 
 
-public class Server implements Server_itf {
-	private Hashtable<String, Integer> tab = new Hashtable<String, Integer>();
-	private Hashtable<Integer, ServerObject> objets = new Hashtable<Integer, ServerObject>();
+public class Server extends UnicastRemoteObject implements Server_itf {
+	
+	protected Server() throws RemoteException {
+		super();
+		tab = new Hashtable<String, Integer>();
+		objets = new Hashtable<Integer, ServerObject>();
+	}
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Hashtable<String, Integer> tab;
+	private Hashtable<Integer, ServerObject> objets;
 
 	@Override
 	public int lookup(String name) throws RemoteException {
-		// TODO Auto-generated method stub
-		Integer i = tab.get(name);
-		return objets.get(i);
+		// On regarde si l'objet est déjà enregistré sur le serveur
+		// Si ce n'est pas le cas on renvoit null !
+
+		if (tab.get(name) == null)
+			return -1;
+		else 
+			return (int) tab.get(name);
 	}
 
 	@Override
 	public void register(String name, int id) throws RemoteException {
-		// TODO Auto-generated method stub
+		// On lie le nom de l'objet à son Id
 		tab.put(name, id);
 	}
 
 	@Override
 	public int create(Object o) throws RemoteException {
-		// TODO Auto-generated method stub
-		return tab.size();
+		// Création d'un ServerObjet et on le met dans la table.
+		int id = tab.size();
+		ServerObject so = new ServerObject(id,o);
+		objets.put(id, so);
+		return id;
 	}
 
 	@Override
 	public Object lock_read(int id, Client_itf client) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		// On transmet l'info au serverObjet correspondant.
+		// Il faudra faire attention aux exceptions NullPointer si jamais id n'est pas correct.
+		Object reponse = objets.get(id).lock_read(client);
+		return reponse;
 	}
 
 	@Override
 	public Object lock_write(int id, Client_itf client) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		Object reponse = objets.get(id).lock_write(client);
+		return reponse;
 	}
 
 }

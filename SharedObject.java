@@ -1,4 +1,5 @@
 import java.io.*;
+import java.rmi.RemoteException;
 
 public class SharedObject implements Serializable, SharedObject_itf {
 	
@@ -14,12 +15,27 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	
 	// invoked by the user program on the client node
 	public void lock_read() {
-		lr = true;
+		// Il faut récupérer l'objet auprès du server et donc du ServerObject
+		try {
+			obj = Client.lock_read(id);
+			lr = true;
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	// invoked by the user program on the client node
 	public void lock_write() {
-		lw = true;
+		// Il faut récupérer l'objet auprès du sever et donc du ServerObect
+		try {
+			obj = Client.lock_write(id);
+			lw = true;
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	// invoked by the user program on the client node
@@ -39,10 +55,17 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	// callback invoked remotely by the server
 	public synchronized void invalidate_reader() {
 		lr = false;
+		lw = false;
 	}
 
 	public synchronized Object invalidate_writer() {
 		lw = false;
+		lr = false;
 		return obj;
+	}
+
+	public Integer getId() {
+		// TODO Auto-generated method stub
+		return id;
 	}
 }
