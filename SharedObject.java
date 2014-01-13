@@ -1,12 +1,16 @@
 import java.io.*;
 import java.rmi.RemoteException;
+import java.util.concurrent.Semaphore;
 
 public class SharedObject implements Serializable, SharedObject_itf {
 	
+
+	
 	public Object obj;
 	private Integer id;
-	private boolean lr = false;
-	private boolean lw = false;
+	Lock lock = Lock.NL;
+	//private boolean lr = false;
+	//private boolean lw = false;
 	
 	public SharedObject(Object ob, Integer iden){
 		obj=ob;
@@ -15,23 +19,47 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	
 	// invoked by the user program on the client node
 	public void lock_read() {
-		// Il faut récupérer l'objet auprès du server et donc du ServerObject
+		// Il faut rï¿½cupï¿½rer l'objet auprï¿½s du server et donc du ServerObject
 		try {
-			obj = Client.lock_read(id);
-			lr = true;
+			switch (lock) {
+				case WLC : 
+					lock = Lock.RLT_WLC;
+					break;
+				case RLC :
+					lock = Lock.RLT;
+					break;
+				case NL :
+					obj = Client.lock_read(id);
+					lock = Lock.RLT;
+					break;
+				default :
+					System.out.println("Erreur : On tente un lock_read mais le lock est invalide");
+			}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
+		} 
 	}
 
 	// invoked by the user program on the client node
 	public void lock_write() {
-		// Il faut récupérer l'objet auprès du sever et donc du ServerObect
+		// Il faut rï¿½cupï¿½rer l'objet auprï¿½s du sever et donc du ServerObect
 		try {
-			obj = Client.lock_write(id);
-			lw = true;
+			switch (lock) {
+				case WLC : 
+					lock = Lock.WLT;
+					break;
+				case RLC :
+					obj = Client.lock_write(id);
+					lock = Lock.WLT;
+					break;
+				case NL :
+					obj = Client.lock_write(id);
+					lock = Lock.WLT;
+					break;
+				default :
+					System.out.println("Erreur : On tente un lock_write mais le lock est invalide");
+			}
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -40,27 +68,94 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
 	// invoked by the user program on the client node
 	public synchronized void unlock() {
-		lr = false;
-		lw = false;
+		switch (lock) {
+			case WLT : 
+				lock = Lock.WLC;
+				break;
+			case RLT_WLC :
+				lock = Lock.WLC;
+				break;
+			case RLT :
+				lock = Lock.RLC;
+				break;
+			default :
+				System.out.println("Erreur : On tente un unlock mais le lock est invalide");
+		}
+		notify();
 	}
 
 
 	// callback invoked remotely by the server
 	public synchronized Object reduce_lock() {
-		lw = false;
-		lr = true;
+		switch (lock) {
+			case WLT : 
+				// On se doit d'attendre que l'User unlock l'objet
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+				lock = Lock.RLC;
+				break;
+			case RLT_WLC :
+				lock = Lock.RLT;
+				break;
+			case WLC :
+				lock = Lock.RLC;
+				break;
+			default :
+				System.out.println("Erreur : Le server tente un reduce_lock mais le lock est invalide");
+		}
 		return obj;
 	}
 
 	// callback invoked remotely by the server
 	public synchronized void invalidate_reader() {
-		lr = false;
-		lw = false;
+		switch (lock) {
+		case RLT :
+			try {
+				wait();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			lock = Lock.NL;
+			break;
+		case RLC :
+			lock = Lock.NL;
+			break;
+		default :
+			System.out.println("Erreur : Le server tente un invalidate_reader mais le lock est invalide");
+		}
 	}
 
 	public synchronized Object invalidate_writer() {
-		lw = false;
-		lr = false;
+		switch (lock) {
+		case RLT_WLC : 
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			lock = Lock.NL;
+			break;
+		case WLT :
+			try {
+				wait();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			lock = Lock.NL;
+			break;
+		case WLC :
+			lock = Lock.NL;
+			break;
+		default :
+			System.out.println("Erreur : Le server tente un invalidate_writer mais le lock est invalide");
+		}
 		return obj;
 	}
 
@@ -69,3 +164,5 @@ public class SharedObject implements Serializable, SharedObject_itf {
 		return id;
 	}
 }
+
+

@@ -21,6 +21,7 @@ public class ServerObject {
 	public Object lock_read(Client_itf cl) throws RemoteException{
 		if (lw) {
 			obj= ecrivain.reduce_lock(id);
+			lecteurs.add(ecrivain);
 			lw = false;
 		}
 		lr = true;
@@ -35,10 +36,10 @@ public class ServerObject {
 		else{
 			for (int i =0; i<lecteurs.size(); i++){
 				lecteurs.get(i).invalidate_reader(id);
+				lecteurs.remove(i);
 			}
 		}
 		ecrivain = cl;
-		lecteurs.add(cl);
 		lw = true;
 		lr = false;
 		return obj;
