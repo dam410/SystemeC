@@ -18,7 +18,7 @@ public class ServerObject {
 	}
 	
 	
-	public Object lock_read(Client_itf cl) throws RemoteException{
+	public synchronized Object lock_read(Client_itf cl) throws RemoteException{
 		if (lw) {
 			obj= ecrivain.reduce_lock(id);
 			lecteurs.add(ecrivain);
@@ -29,15 +29,15 @@ public class ServerObject {
 		return obj;
 	}
 	
-	public Object lock_write(Client_itf cl) throws RemoteException{
+	public synchronized Object lock_write(Client_itf cl) throws RemoteException{
 		if (lw){
 			obj= ecrivain.invalidate_writer(id);
 		}
 		else{
 			for (int i =0; i<lecteurs.size(); i++){
 				lecteurs.get(i).invalidate_reader(id);
-				lecteurs.remove(i);
 			}
+			lecteurs = new ArrayList<Client_itf>();
 		}
 		ecrivain = cl;
 		lw = true;

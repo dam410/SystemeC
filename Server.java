@@ -20,24 +20,26 @@ public class Server extends UnicastRemoteObject implements Server_itf {
 
 	@Override
 	public int lookup(String name) throws RemoteException {
-		// On regarde si l'objet est déjà enregistré sur le serveur
+		System.out.println("Lookup Server");
+		// On regarde si l'objet est dï¿½jï¿½ enregistrï¿½ sur le serveur
 		// Si ce n'est pas le cas on renvoit null !
-
-		if (tab.get(name) == null)
+		if (tab.get(name) == null) {
 			return -1;
+		}
 		else 
 			return (int) tab.get(name);
 	}
 
 	@Override
 	public void register(String name, int id) throws RemoteException {
-		// On lie le nom de l'objet à son Id
+		// On lie le nom de l'objet ï¿½ son Id
 		tab.put(name, id);
 	}
 
 	@Override
 	public int create(Object o) throws RemoteException {
-		// Création d'un ServerObjet et on le met dans la table.
+		System.out.println("Server create");
+		// Crï¿½ation d'un ServerObjet et on le met dans la table.
 		int id = tab.size();
 		ServerObject so = new ServerObject(id,o);
 		objets.put(id, so);

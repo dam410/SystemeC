@@ -35,6 +35,7 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 	
 	// lookup in the name server
 	public static SharedObject lookup(String name) {
+		System.out.println("Lookup Client");
 		//On appelle le serveur, pour trouver l'Id de l'objet demand�
 		Integer id = null;
 		SharedObject so = null;
@@ -73,6 +74,7 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 
 	// creation of a shared object
 	public static SharedObject create(Object o) {
+		System.out.println("Client create");
 		Integer id = null;
 		try {
 			id = serveur.create(o);
