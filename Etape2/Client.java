@@ -5,6 +5,7 @@ import java.rmi.registry.*;
 import java.util.Hashtable;
 import java.net.*;
 
+
 public class Client extends UnicastRemoteObject implements Client_itf {
 
 	/**
@@ -35,7 +36,7 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 	}
 	
 	// lookup in the name server
-	public static SharedObject lookup(String name) {
+	public synchronized static SharedObject lookup(String name) {
 		System.out.println("Lookup Client");
 		//On appelle le serveur, pour trouver l'Id de l'objet demand�
 		Integer id = null;
@@ -50,8 +51,23 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 		// On cr�er un SharedObject, l'objet n'est pas encore coh�rent.
 		// Dans le cas ou l'objet existe bien.
 		if (id != -1) {
-			so = new SharedObject(null,id);
-			objets.put(id, so);
+			Object o;
+			try {
+				SharedObject stock = new SharedObject(null,id);
+				objets.put(id, stock);
+				o = lock_read(id);
+				stock.unlock();
+				
+				// L'objet devient cohérent et on peut créer notre stub
+				so = GenerateurStub.creation(o);
+				so.setId(id);
+				so.setObj(o);
+				stock = so;
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		return so;
 		
@@ -59,8 +75,11 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 	
 	// binding in the name server
 	public static void register(String name, SharedObject_itf so) {
+		if(so == null)
+			System.out.println("so est null");
 		Integer id = ((SharedObject) so).getId();
 		try {
+			System.out.println("Je register au serveur avec " + name + " et id = " + id);
 			serveur.register(name,id);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
@@ -80,6 +99,16 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 			e.printStackTrace();
 		}
 		SharedObject stub = GenerateurStub.creation(o);
+		stub.setId(id);
+		//TEST DE LECTURE
+		Sentence_itf s = (Sentence_itf) stub;
+		((SharedObject)s).setObj(new Sentence());
+		if(((SharedObject)s).getObj() == null) {
+			System.out.println("On ne peut pas set l'objet");
+		}
+		s.read();
+		if (stub.obj == null)
+			System.out.println("L'objet obj est null après la génération du _stub");
 		objets.put(id,stub);
 		return(stub);
 	}

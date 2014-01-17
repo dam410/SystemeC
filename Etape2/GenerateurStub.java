@@ -16,22 +16,29 @@ public class GenerateurStub {
 	public static SharedObject creation(Object o){
 		Class c = o.getClass();
 		ecriture(c);
-		compilateur(c.getName()+"_stub.java");
+		compilateur(c.getSimpleName()+"_stub.java");
+		System.out.println("J'ai compilé");
 		Class classeStub = null;
 		try {
-			classeStub = Class.forName(o.getClass().getSimpleName()+"_stub");
+			classeStub = Class.forName("Etape2."+ o.getClass().getSimpleName()+"_stub");
+			System.out.println("Classe obtenu stub");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return getStub(classeStub, o);
+		if(getStub(classeStub, o) == null)
+			System.out.println("Si l'objet est null !!!");
+		SharedObject res = getStub(classeStub, o);
+		res.setObj(o);
+		res.lock = Lock.NL;
+		return res;
 	}
 	
 	
 	
 	
 	public static void ecriture(Class c){
-		File f = new File("./src/Etape2/"+c.getSimpleName()+"_stub.java");
+		File f = new File(c.getSimpleName()+"_stub.java");
 		if(f.exists()) {
 			f.delete();
 		}
@@ -44,8 +51,6 @@ public class GenerateurStub {
 			// Ecriture de l'entête
 			fw.write("public class " + c.getSimpleName() + "_stub extends SharedObject implements " + c.getSimpleName() + "_itf, java.io.Serializable {\n");
 			// Ecriture des attributs de la classe
-			//Ajout de l'attribut Objet (classe métier)
-			fw.write("private " + c.getSimpleName() + " obj;\n");
 			// AJout de l'attribut serialisation
 			fw.write("private static final long serialVersionUID = 1L;\n");
 			//Ajout des méthodes
@@ -88,7 +93,7 @@ public class GenerateurStub {
 				if(m.getReturnType() != void.class) {
 					s+=m.getReturnType().getName()+" retour = ";
 				}
-				s+="obj."+m.getName()+"(";
+				s+="(("+c.getSimpleName()+") this.obj)."+m.getName()+"(";
 				//Insertions des parametres
 				for(int j = 0;j<parametre.length;j++) {
 					if(j != 0) {

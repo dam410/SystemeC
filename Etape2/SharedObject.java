@@ -9,13 +9,14 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	
 	public Object obj;
 	private Integer id;
-	Lock lock = Lock.NL;
+	public Lock lock = Lock.NL;
 	
 	public SharedObject() {
-		
+		lock = Lock.NL;
 	}
 	
 	public SharedObject(Object ob, Integer iden){
+		lock = Lock.NL;
 		obj=ob;
 		id=iden;
 	}
@@ -71,6 +72,8 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
 	// invoked by the user program on the client node
 	public synchronized void unlock() {
+		if(lock == null)
+			System.out.println("Le lock est null lors de l'unlock");
 		switch (lock) {
 			case WLT : 
 				lock = Lock.WLC;
@@ -133,6 +136,9 @@ public class SharedObject implements Serializable, SharedObject_itf {
 		case RLC :
 			lock = Lock.NL;
 			break;
+		case NL :
+			// CAS RARE : VOIR CLIENT LOOKUP
+			lock = Lock.NL;
 		default :
 			System.out.println("Erreur : Le server tente un invalidate_reader mais le lock est invalide");
 		}
@@ -179,6 +185,14 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	public void setId(Integer id) {
 		this.id = id;
 	}
+	
+	public void setObj(Object o) {
+		obj = o;
+	}
+	public Object getObj() {
+		return obj;
+	}
+	
 }
 
 

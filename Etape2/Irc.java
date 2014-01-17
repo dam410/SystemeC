@@ -31,7 +31,10 @@ public class Irc extends Frame {
 		// if not found, create it, and register it in the name server
 		Sentence_itf s = (Sentence_itf)Client.lookup("IRC");
 		if (s == null) {
+			System.out.println("je n'ai pas trouvé l'obj sur le serveur j'en crée un ");
 			s = (Sentence_itf)Client.create(new Sentence());
+			//TEST
+			s.read();
 			Client.register("IRC", s);
 		}
 		// create the graphical part
