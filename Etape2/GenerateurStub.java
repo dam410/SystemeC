@@ -7,7 +7,28 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+
 public class GenerateurStub {
+	
+	public static SharedObject creation(Object o){
+		Class c = o.getClass();
+		ecriture(c);
+		compilateur(c.getName()+"_stub.java");
+		Class classeStub = null;
+		try {
+			classeStub = Class.forName(o.getClass().getSimpleName()+"_stub");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return getStub(classeStub, o);
+	}
+	
+	
+	
 	
 	public static void ecriture(Class c){
 		File f = new File("./src/Etape2/"+c.getSimpleName()+"_stub.java");
@@ -23,12 +44,6 @@ public class GenerateurStub {
 			// Ecriture de l'entête
 			fw.write("public class " + c.getSimpleName() + "_stub extends SharedObject implements " + c.getSimpleName() + "_itf, java.io.Serializable {\n");
 			// Ecriture des attributs de la classe
-			/*Field[] attributs = c.getFields();
-			for(int i = 0;i<attributs.length;i++) {
-				//String s = getModifiersFromInt(attributs[i].getModifiers());
-				fw.write(attributs[i].toGenericString()+";\n");
-			}
-			*/
 			//Ajout de l'attribut Objet (classe métier)
 			fw.write("private " + c.getSimpleName() + " obj;\n");
 			// AJout de l'attribut serialisation
@@ -122,6 +137,38 @@ public class GenerateurStub {
 			result = null;
 		}
 		return result;
+	}
+	
+	public static void compilateur (String name) {
+		File fichier = new File(name);	
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
+        compiler.getTask(null, fileManager, null, null, null, fileManager.getJavaFileObjects(fichier)).call();
+
+	}
+	
+	public static SharedObject getStub(Class c, Object o) {
+		SharedObject stub = null;
+		try {
+			stub = (SharedObject) c.newInstance();
+			try {
+				c.getField("obj").set(stub, o);
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return (SharedObject) stub;
 	}
 	
 	public static Object getStub(Object o) {

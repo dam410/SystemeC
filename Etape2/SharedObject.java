@@ -175,6 +175,10 @@ public class SharedObject implements Serializable, SharedObject_itf {
 		// TODO Auto-generated method stub
 		return id;
 	}
+	
+	public void setId(Integer id) {
+		this.id = id;
+	}
 }
 
 

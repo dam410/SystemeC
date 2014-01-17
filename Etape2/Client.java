@@ -59,10 +59,6 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 	
 	// binding in the name server
 	public static void register(String name, SharedObject_itf so) {
-		// Je sais pas comment obtenir ici l'ID du sharedObject, En a t'il un ??
-		// Et comme je sais pas non plus comment obtenir l'Objet pour en cr�er un??
-		// Je peux pas non plus faire un lookup, puisque aucun Autre Client n'aura pu register avant dans "tab"
-		// Solution : Ccaster SharedObject_itf en SharedObject et faire un getId()
 		Integer id = ((SharedObject) so).getId();
 		try {
 			serveur.register(name,id);
@@ -83,9 +79,9 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SharedObject so = new SharedObject(o,id);
-		objets.put(id,so);
-		return(so);
+		SharedObject stub = GenerateurStub.creation(o);
+		objets.put(id,stub);
+		return(stub);
 	}
 	
 /////////////////////////////////////////////////////////////
