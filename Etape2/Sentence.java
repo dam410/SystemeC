@@ -1,6 +1,8 @@
 package Etape2;
 public class Sentence implements java.io.Serializable {
+	
 	String 		data;
+	
 	public Sentence() {
 		data = new String("");
 	}
@@ -14,5 +16,7 @@ public class Sentence implements java.io.Serializable {
 	public String read() {
 		return data;	
 	}
+
+
 	
 }

@@ -11,6 +11,10 @@ public class SharedObject implements Serializable, SharedObject_itf {
 	private Integer id;
 	Lock lock = Lock.NL;
 	
+	public SharedObject() {
+		
+	}
+	
 	public SharedObject(Object ob, Integer iden){
 		obj=ob;
 		id=iden;

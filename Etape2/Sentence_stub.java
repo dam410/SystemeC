@@ -1,16 +1,19 @@
 package Etape2;
 
 public class Sentence_stub extends SharedObject implements Sentence_itf, java.io.Serializable {
-	
-	public void write(String text) {
-		lock_write();
-		Sentence s = (Sentence)obj;
-		s.write(text);
-		unlock();
-	}
-	public String read() {
-		Sentence s = (Sentence)obj;
-		return s.read();	
-	}
-	
+private Sentence obj;
+private static final long serialVersionUID = 1L;
+
+public void write(java.lang.String param0) {
+lock_write();
+obj.write(param0);
+unlock();
+}
+
+public java.lang.String read() {
+lock_read();
+java.lang.String retour = obj.read();
+unlock();
+return retour;
+}
 }

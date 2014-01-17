@@ -1,3 +1,5 @@
+package Etape2;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.rmi.*;
@@ -72,14 +74,9 @@ class readListener implements ActionListener {
 	}
 	public void actionPerformed (ActionEvent e) {
 		
-		// lock the object in read mode
-		irc.sentence.lock_read();
-		
 		// invoke the method
 		String s = irc.sentence.read();
 		
-		// unlock the object
-		irc.sentence.unlock();
 		
 		// display the read value
 		irc.text.append(s+"\n");
@@ -96,15 +93,11 @@ class writeListener implements ActionListener {
 		// get the value to be written from the buffer
         	String s = irc.data.getText();
         	
-        	// lock the object in write mode
-		irc.sentence.lock_write();
 		
 		// invoke the method
 		irc.sentence.write(Irc.myName+" wrote "+s);
 		irc.data.setText("");
 		
-		// unlock the object
-		irc.sentence.unlock();
 	}
 }
 
